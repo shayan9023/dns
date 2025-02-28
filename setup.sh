@@ -167,7 +167,7 @@ cat <<EOF > templates/index.html
             .then(data => {
                 let userList = document.getElementById('user-list');
                 data.forEach(user => {
-                    userList.innerHTML += `<p>${user[0]} - Token: ${user[1]}</p>`;
+                    userList.innerHTML += `<p>\${user[0]} - Token: \${user[1]}</p>`;
                 });
             });
     </script>
