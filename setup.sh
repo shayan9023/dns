@@ -24,7 +24,7 @@ echo '<h1>404 - صفحه مورد نظر یافت نشد!</h1>' | sudo tee /var/
 # تنظیمات Nginx
 sudo tee /etc/nginx/sites-available/dns-panel <<EOF
 server {
-    listen 6000;
+    listen 80;
     server_name localhost;
     root /var/www/html/dns-panel;
     index index.php;
@@ -60,4 +60,4 @@ sudo systemctl status php8.1-fpm | head -n 10
 
 # نمایش آدرس پنل
 IP=$(curl -s ifconfig.me)
-echo "پنل با موفقیت نصب شد! می‌توانید از طریق: http://$IP:6000 به آن دسترسی پیدا کنید."
+echo "پنل با موفقیت نصب شد! می‌توانید از طریق: http://$IP به آن دسترسی پیدا کنید."
