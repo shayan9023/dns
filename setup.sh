@@ -20,6 +20,9 @@ unzip /tmp/dns-panel.zip -d /var/www/html/
 sudo mv /var/www/html/dns-main /var/www/html/dns-panel
 sudo chown -R www-data:www-data /var/www/html/dns-panel
 
+# ساخت صفحه 404 سفارشی
+echo '<h1>404 - صفحه مورد نظر یافت نشد!</h1>' | sudo tee /var/www/html/dns-panel/404.html
+
 # تنظیمات Nginx
 sudo tee /etc/nginx/sites-available/dns-panel <<EOF
 server {
@@ -27,12 +30,17 @@ server {
     server_name localhost;
     root /var/www/html/dns-panel;
     index index.php;
+    error_page 404 /404.html;
+
     location / {
         try_files $uri $uri/ /index.php?$query_string;
     }
     location ~ \.php$ {
         include snippets/fastcgi-php.conf;
         fastcgi_pass unix:/var/run/php/php8.1-fpm.sock;
+    }
+    location = /404.html {
+        internal;
     }
 }
 EOF
