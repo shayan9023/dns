@@ -10,23 +10,22 @@ sudo apt-get install nginx php8.1-fpm php8.1-mysql unzip curl -y
 sudo systemctl start php8.1-fpm
 sudo systemctl enable php8.1-fpm
 
-# تنظیمات فایروال برای Nginx
-
 # دانلود و نصب پنل مدیریت DNS
 wget -O /tmp/dns-panel.zip https://github.com/shayan9023/dns/archive/refs/heads/main.zip
 unzip /tmp/dns-panel.zip -d /var/www/html/
-sudo mv /var/www/html/dns-main /var/www/html/dns-panel
-sudo chown -R www-data:www-data /var/www/html/dns-panel
+sudo mv /var/www/html/dns-main/* /var/www/html/
+sudo rm -r /var/www/html/dns-main
+sudo chown -R www-data:www-data /var/www/html/
 
 # ساخت صفحه 404 سفارشی
-echo '<h1>404 - صفحه مورد نظر یافت نشد!</h1>' | sudo tee /var/www/html/dns-panel/404.html
+echo '<h1>404 - صفحه مورد نظر یافت نشد!</h1>' | sudo tee /var/www/html/404.html
 
 # تنظیمات Nginx
 sudo tee /etc/nginx/sites-available/dns-panel <<EOF
 server {
     listen 80;
     server_name localhost;
-    root /var/www/html/dns-panel;
+    root /var/www/html;
     index index.php;
     error_page 404 /404.html;
 
