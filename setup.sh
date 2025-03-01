@@ -1,91 +1,45 @@
 #!/bin/bash
 
-# نصب وابستگی‌ها
-apt-get update
-apt-get install -y nginx php-fpm sqlite3 php-sqlite3 curl
+# به‌روزرسانی سیستم
+sudo apt-get update -y && sudo apt-get upgrade -y
 
-# ساخت دیتابیس
-DB_PATH="/var/www/html/dns-panel/users.db"
-mkdir -p /var/www/html/dns-panel
-sqlite3 $DB_PATH "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT, quota INTEGER, time INTEGER, dns_link TEXT, password TEXT);"
+# نصب Nginx و PHP
+sudo apt-get install nginx php8.1-fpm php8.1-mysql unzip curl -y
 
-# ساخت صفحه لاگین
-cat <<EOF > /var/www/html/dns-panel/index.php
-<?php
-session_start();
-\$db = new PDO('sqlite:$DB_PATH');
+# راه‌اندازی PHP-FPM
+sudo systemctl start php8.1-fpm
+sudo systemctl enable php8.1-fpm
 
-if (isset(\$_POST['login'])) {
-    \$stmt = \$db->prepare("SELECT * FROM users WHERE username = ? AND password = ?");
-    \$stmt->execute([\$_POST['username'], \$_POST['password']]);
-    \$user = \$stmt->fetch();
-    if (\$user) {
-        \$_SESSION['user'] = \$user;
-        header('Location: /dns-panel/dashboard.php');
-        exit();
-    } else {
-        echo "<p style='color: red;'>نام کاربری یا رمز عبور اشتباه است!</p>";
-    }
-}
-?>
-<html>
-<head><title>ورود ادمین</title></head>
-<body style="background-color: #121212; color: #fff; text-align: center;">
-    <h2 style="color: #3498db;">ورود به پنل DNS</h2>
-    <form method="post">
-        <input type="text" name="username" placeholder="نام کاربری" required><br>
-        <input type="password" name="password" placeholder="رمز عبور" required><br>
-        <button type="submit" name="login">ورود</button>
-    </form>
-</body>
-</html>
-EOF
+# تنظیمات فایروال برای Nginx
+sudo ufw allow 'Nginx HTTP'
+sudo ufw allow 8080
 
-# ساخت صفحه داشبورد
-cat <<EOF > /var/www/html/dns-panel/dashboard.php
-<?php
-session_start();
-if (!isset(\$_SESSION['user'])) {
-    header('Location: /dns-panel/index.php');
-    exit();
-}
-\$db = new PDO('sqlite:$DB_PATH');
-\$users = \$db->query("SELECT * FROM users")->fetchAll();
-?>
-<html>
-<head><title>پنل DNS</title></head>
-<body style="background-color: #121212; color: #fff;">
-<h2 style="color: #3498db; text-align: center;">لیست کاربران</h2>
-<table border="1" style="width: 80%; margin: auto; color: #fff;">
-<tr><th>نام کاربری</th><th>حجم</th><th>زمان</th><th>لینک DNS</th><th>حذف</th></tr>
-<?php foreach (\$users as \$user): ?>
-<tr>
-    <td><?php echo \$user['username']; ?></td>
-    <td><?php echo \$user['quota'] ? \$user['quota'] . ' GB' : 'نامحدود'; ?></td>
-    <td><?php echo \$user['time'] ? \$user['time'] . ' روز' : 'نامحدود'; ?></td>
-    <td><input type="text" value="<?php echo \$user['dns_link']; ?>" readonly></td>
-    <td><a href="delete.php?id=<?php echo \$user['id']; ?>">حذف</a></td>
-</tr>
-<?php endforeach; ?>
-</table>
-</body>
-</html>
-EOF
+# دانلود و نصب پنل مدیریت DNS
+wget -O /tmp/dns-panel.zip https://github.com/shayan9023/dns/archive/refs/heads/main.zip
+unzip /tmp/dns-panel.zip -d /var/www/html/
+sudo mv /var/www/html/dns-main /var/www/html/dns-panel
+sudo chown -R www-data:www-data /var/www/html/dns-panel
 
 # تنظیمات Nginx
-cat <<EOF > /etc/nginx/sites-available/dns-panel
+sudo tee /etc/nginx/sites-available/dns-panel <<EOF
 server {
     listen 8080;
     root /var/www/html/dns-panel;
     index index.php;
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
     location ~ \.php$ {
         include snippets/fastcgi-php.conf;
-        fastcgi_pass unix:/var/run/php/php-fpm.sock;
+        fastcgi_pass unix:/var/run/php/php8.1-fpm.sock;
     }
 }
 EOF
 
-ln -s /etc/nginx/sites-available/dns-panel /etc/nginx/sites-enabled/
-systemctl restart nginx
+# فعال‌سازی سایت و ریستارت Nginx
+sudo ln -s /etc/nginx/sites-available/dns-panel /etc/nginx/sites-enabled/
+sudo systemctl restart nginx
 
-echo "نصب و راه‌اندازی پنل DNS با موفقیت انجام شد!"
+# نمایش آدرس پنل
+IP=$(curl -s ifconfig.me)
+echo "پنل با موفقیت نصب شد! می‌توانید از طریق: http://$IP:8080 به آن دسترسی پیدا کنید."
