@@ -12,7 +12,7 @@ sudo systemctl enable php8.1-fpm
 
 # تنظیمات فایروال برای Nginx
 sudo ufw allow 'Nginx HTTP'
-sudo ufw allow 8080
+sudo ufw allow 6000
 
 # دانلود و نصب پنل مدیریت DNS
 wget -O /tmp/dns-panel.zip https://github.com/shayan9023/dns/archive/refs/heads/main.zip
@@ -23,7 +23,7 @@ sudo chown -R www-data:www-data /var/www/html/dns-panel
 # تنظیمات Nginx
 sudo tee /etc/nginx/sites-available/dns-panel <<EOF
 server {
-    listen 8080;
+    listen 6000;
     server_name localhost;
     root /var/www/html/dns-panel;
     index index.php;
@@ -54,4 +54,4 @@ sudo systemctl status php8.1-fpm | head -n 10
 
 # نمایش آدرس پنل
 IP=$(curl -s ifconfig.me)
-echo "پنل با موفقیت نصب شد! می‌توانید از طریق: http://$IP:8080 به آن دسترسی پیدا کنید."
+echo "پنل با موفقیت نصب شد! می‌توانید از طریق: http://$IP:6000 به آن دسترسی پیدا کنید."
