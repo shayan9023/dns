@@ -11,8 +11,6 @@ sudo systemctl start php8.1-fpm
 sudo systemctl enable php8.1-fpm
 
 # تنظیمات فایروال برای Nginx
-sudo ufw allow 'Nginx HTTP'
-sudo ufw allow 6000
 
 # دانلود و نصب پنل مدیریت DNS
 wget -O /tmp/dns-panel.zip https://github.com/shayan9023/dns/archive/refs/heads/main.zip
