@@ -24,6 +24,7 @@ sudo chown -R www-data:www-data /var/www/html/dns-panel
 sudo tee /etc/nginx/sites-available/dns-panel <<EOF
 server {
     listen 8080;
+    server_name localhost;
     root /var/www/html/dns-panel;
     index index.php;
     location / {
@@ -39,6 +40,17 @@ EOF
 # فعال‌سازی سایت و ریستارت Nginx
 sudo ln -s /etc/nginx/sites-available/dns-panel /etc/nginx/sites-enabled/
 sudo systemctl restart nginx
+
+# بررسی خطاهای Nginx
+sudo nginx -t
+if [ $? -ne 0 ]; then
+    echo "خطایی در تنظیمات Nginx وجود دارد!"
+    exit 1
+fi
+
+# بررسی وضعیت سرویس‌ها
+sudo systemctl status nginx | head -n 10
+sudo systemctl status php8.1-fpm | head -n 10
 
 # نمایش آدرس پنل
 IP=$(curl -s ifconfig.me)
